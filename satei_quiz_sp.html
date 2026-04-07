@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>査定 知識テスト</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: #f2f2f7; min-height: 100vh; padding: 0; }
+
+  .wrap { width: 100%; max-width: 600px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  /* ヘッダー */
+  .hdr { margin-bottom: 16px; }
+  .hdr h2 { font-size: 20px; font-weight: 600; color: #111; margin-bottom: 2px; }
+  .hdr p { font-size: 13px; color: #888; }
+
+  /* プログレス */
+  .prog-bar { height: 5px; background: #ddd; border-radius: 3px; margin-bottom: 16px; overflow: hidden; }
+  .prog-fill { height: 100%; background: #7F77DD; border-radius: 3px; transition: width 0.3s; }
+
+  /* 警告バナー */
+  .warn-banner { background: #FCEBEB; border: 1px solid #E24B4A; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #501313; margin-bottom: 12px; display: none; line-height: 1.6; }
+
+  /* フォームカード */
+  .form-card { background: #fff; border-radius: 16px; padding: 20px 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .form-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #111; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 500; }
+  .field input, .field select {
+    width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px;
+    font-size: 16px; background: #fff; color: #111; appearance: none; -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: #7F77DD; }
+  .radio-group { display: flex; gap: 10px; }
+  .radio-label {
+    flex: 1; text-align: center; font-size: 15px; color: #111; cursor: pointer;
+    padding: 14px 10px; border: 1px solid #ddd; border-radius: 10px;
+    background: #fff; transition: all 0.12s; user-select: none; font-weight: 500;
+  }
+  .radio-label.selected { border-color: #7F77DD; background: #EEEDFE; color: #3C3489; }
+  .field-err { font-size: 12px; color: #E24B4A; margin-top: 5px; display: none; }
+  .start-btn {
+    width: 100%; padding: 16px; background: #7F77DD; border: none; border-radius: 12px;
+    color: #fff; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+  .start-btn:active { background: #534AB7; }
+
+  /* クイズカード */
+  .card { background: #fff; border-radius: 16px; padding: 18px 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .badge-basic { background: #EAF3DE; color: #27500A; }
+  .badge-hard { background: #EEEDFE; color: #3C3489; }
+
+  /* タイマー */
+  .timer-wrap { display: flex; align-items: center; gap: 8px; flex: 1; margin-left: 10px; }
+  .timer-bar-bg { flex: 1; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .timer-bar { height: 100%; background: #7F77DD; border-radius: 3px; transition: width 1s linear; }
+  .timer-bar.warn { background: #E24B4A; }
+  .timer-num { font-size: 13px; font-weight: 600; color: #888; min-width: 32px; text-align: right; }
+  .timer-num.warn { color: #E24B4A; }
+
+  .qtext { font-size: 17px; font-weight: 600; line-height: 1.6; margin-bottom: 18px; color: #111; }
+
+  /* 選択肢 */
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  .cbtn {
+    text-align: left; padding: 16px; border: 1.5px solid #e0e0e0; border-radius: 12px;
+    background: #fff; font-size: 15px; cursor: pointer; color: #111; line-height: 1.5;
+    transition: background 0.1s; font-family: inherit; width: 100%;
+  }
+  .cbtn:active:not(:disabled) { background: #f0f0f0; }
+  .cbtn.reveal { border-color: #1D9E75; background: #E1F5EE; color: #085041; font-weight: 600; }
+  .cbtn.wrong { border-color: #E24B4A; background: #FCEBEB; color: #501313; }
+  .cbtn.timeout { border-color: #ddd; background: #f8f8f8; color: #aaa; }
+
+  /* 次へボタン */
+  .next-btn {
+    width: 100%; padding: 16px; background: #7F77DD; border: none; border-radius: 12px;
+    color: #fff; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 4px;
+    display: none; font-family: inherit;
+  }
+  .next-btn:active { background: #534AB7; }
+
+  /* カウンター */
+  .ctr { font-size: 13px; color: #888; margin-top: 8px; text-align: center; display: block; }
+
+  /* 完了画面 */
+  .finish-wrap { text-align: center; padding: 60px 20px; }
+  .finish-icon { font-size: 60px; margin-bottom: 20px; }
+  .finish-wrap h3 { font-size: 22px; font-weight: 700; color: #111; margin-bottom: 10px; }
+  .finish-wrap p { font-size: 15px; color: #888; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <h2>査定 知識テスト</h2>
+    <p id="subtitle">受験者情報を入力してください</p>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+  <div id="warn-banner" class="warn-banner">⚠️ 別の画面への移動を検知しました。テストを最初からやり直します。</div>
+  <div id="main"></div>
+  <span class="ctr" id="ctr"></span>
+</div>
+
+<script>
+const GAS_URL = "YOUR_GAS_URL_HERE";
+
+const basicQ = [
+  { q: "ルイヴィトンの定番素材は？", choices: ["トアル地", "本革", "ナイロン"], answer: "トアル地" },
+  { q: "ルイヴィトンの創業年は？", choices: ["1854年", "1921年", "1837年"], answer: "1854年" },
+  { q: "ルイヴィトンの創業者は？", choices: ["ルイ・ヴィトン", "ジョルジュ・ヴィトン", "ガブリエル・シャネル"], answer: "ルイ・ヴィトン" },
+  { q: "ルイヴィトンはどこの国のブランド？", choices: ["フランス", "イタリア", "イギリス"], answer: "フランス" },
+  { q: "ルイヴィトンがもともと高く評価された代表的な製品は？", choices: ["トランク", "スニーカー", "腕時計"], answer: "トランク" },
+  { q: "ダミエ・キャンバスが登場した年は？", choices: ["1888年", "1896年", "1905年"], answer: "1888年" },
+  { q: "モノグラム・キャンバスを考案した人物は？", choices: ["ジョルジュ・ヴィトン", "ルイ・ヴィトン", "マーク・ジェイコブス"], answer: "ジョルジュ・ヴィトン" },
+  { q: "モノグラム・キャンバスが登場した年は？", choices: ["1896年", "1888年", "1854年"], answer: "1896年" },
+  { q: "モノグラム・キャンバスが作られた主な目的は？", choices: ["模倣防止", "軽量化", "防水強化"], answer: "模倣防止" },
+  { q: "ダミエ柄の特徴は？", choices: ["市松模様", "花柄", "ストライプ"], answer: "市松模様" },
+  { q: "「LV」のイニシャルは何を表している？", choices: ["ルイ・ヴィトン", "ラグジュアリー・ヴィジョン", "リミテッド・バリュー"], answer: "ルイ・ヴィトン" },
+  { q: "ルイヴィトンの代表的な旅行用バッグは？", choices: ["キーポル", "ケリー", "2.55"], answer: "キーポル" },
+  { q: "ルイヴィトンの代表的なミニボストン型バッグは？", choices: ["スピーディ", "バーキン", "ガーデンパーティ"], answer: "スピーディ" },
+  { q: "ルイヴィトンの人気トートバッグは？", choices: ["ネヴァーフル", "アルマ", "カプシーヌ"], answer: "ネヴァーフル" },
+  { q: "「アルマ」のフォルムとして近いのは？", choices: ["丸みのあるドーム型", "細長い横長型", "巾着型"], answer: "丸みのあるドーム型" },
+  { q: "ルイヴィトンの「エピ」とは何のライン？", choices: ["型押しレザー", "デニム", "キャンバスプリント"], answer: "型押しレザー" },
+  { q: "モノグラムやダミエでよく使われる素材は？", choices: ["コーテッドキャンバス", "麻", "ウール"], answer: "コーテッドキャンバス" },
+  { q: "ルイヴィトンのブランドの原点として最も近いテーマは？", choices: ["旅", "スポーツ", "音楽"], answer: "旅" },
+  { q: "ダミエとモノグラム、登場が早いのは？", choices: ["ダミエ・キャンバス", "モノグラム・キャンバス", "同時"], answer: "ダミエ・キャンバス" },
+  { q: "ルイヴィトンの歴史で外せない代表的な分野は？", choices: ["トランク製作", "香水研究", "ジュエリー加工"], answer: "トランク製作" },
+  { q: "ヴィトンのタイガラインはどんな素材？", choices: ["型押しレザー", "コーテッドキャンバス", "デニム"], answer: "型押しレザー" },
+  { q: "ヴィトンのモノグラムの地色は？", choices: ["ブラウン系", "黒", "白"], answer: "ブラウン系" },
+  { q: "ヴィトンのダミエ・アズールの特徴は？", choices: ["白とベージュの市松模様", "茶色の市松模様", "黒の市松模様"], answer: "白とベージュの市松模様" },
+  { q: "ヴィトン「ポルトモネ」は何を入れるアイテム？", choices: ["財布（コインケース）", "鍵入れ", "カード入れ"], answer: "財布（コインケース）" },
+  { q: "ヴィトンの「モノグラム・ヴェルニ」の特徴は？", choices: ["光沢のあるエナメル素材", "型押しレザー", "キャンバス生地"], answer: "光沢のあるエナメル素材" },
+  { q: "シャネルの創業者は？", choices: ["ガブリエル・シャネル", "クリスチャン・ディオール", "ルイ・ヴィトン"], answer: "ガブリエル・シャネル" },
+  { q: "シャネルの通称として有名なのは？", choices: ["ココ・シャネル", "ミス・シャネル", "マダム・パリ"], answer: "ココ・シャネル" },
+  { q: "シャネルはどこの国のブランド？", choices: ["フランス", "イタリア", "スイス"], answer: "フランス" },
+  { q: "シャネル初の香水として有名なのは？", choices: ["N°5", "チャンス", "アリュール"], answer: "N°5" },
+  { q: "CHANEL N°5 が誕生した年は？", choices: ["1921年", "1955年", "1910年"], answer: "1921年" },
+  { q: "2.55はどのアイテムとして有名？", choices: ["ハンドバッグ", "腕時計", "香水"], answer: "ハンドバッグ" },
+  { q: "CHANEL 2.55 が誕生した年は？", choices: ["1955年", "1921年", "1983年"], answer: "1955年" },
+  { q: "CHANEL 2.55 の代表的なデザインコードは？", choices: ["キルティング", "市松模様", "モノグラム"], answer: "キルティング" },
+  { q: "CHANEL 2.55 の特徴的なストラップは？", choices: ["チェーンストラップ", "竹ハンドル", "ロープストラップ"], answer: "チェーンストラップ" },
+  { q: "CHANEL 2.55 の特徴的な留め具は？", choices: ["マドモアゼル ロック", "ターンロックH", "馬具金具"], answer: "マドモアゼル ロック" },
+  { q: "シャネルを象徴する花として有名なのは？", choices: ["カメリア", "バラ", "ユリ"], answer: "カメリア" },
+  { q: "シャネルらしい素材として代表的なのは？", choices: ["ツイード", "デニム", "キャンバス"], answer: "ツイード" },
+  { q: "シャネルのロゴとして有名なのは？", choices: ["重なり合う2つのC", "Hの金具", "王冠マーク"], answer: "重なり合う2つのC" },
+  { q: "シャネルの代表色の組み合わせは？", choices: ["ブラック&ホワイト", "レッド&グリーン", "ブルー&イエロー"], answer: "ブラック&ホワイト" },
+  { q: "シャネルのコスメで有名なリップは？", choices: ["ルージュ ココ", "ディオールリップ", "YSLルージュ"], answer: "ルージュ ココ" },
+  { q: "シャネルの「ボーイシャネル」は何のアイテム？", choices: ["バッグ", "靴", "香水"], answer: "バッグ" },
+  { q: "シャネルのアイコニックなジャケットを何という？", choices: ["シャネルスーツ", "ツイードコート", "バルマカーンコート"], answer: "シャネルスーツ" },
+  { q: "シャネルのワールドワイドなシンボルとして知られるのは？", choices: ["CCロゴ", "LVモノグラム", "Hバックル"], answer: "CCロゴ" },
+  { q: "エルメスの創業年は？", choices: ["1837年", "1854年", "1905年"], answer: "1837年" },
+  { q: "エルメスの創業者は？", choices: ["ティエリ・エルメス", "ロベール・デュマ", "ジャン=ルイ・デュマ"], answer: "ティエリ・エルメス" },
+  { q: "エルメスはどこの国のブランド？", choices: ["フランス", "スイス", "イギリス"], answer: "フランス" },
+  { q: "エルメスの原点となる職業は？", choices: ["馬具工房", "宝飾職人", "靴職人"], answer: "馬具工房" },
+  { q: "エルメスが最初に工房を開いた都市は？", choices: ["パリ", "ロンドン", "ジュネーブ"], answer: "パリ" },
+  { q: "Kelly バッグがその名で知られるようになった年は？", choices: ["1956年", "1937年", "1984年"], answer: "1956年" },
+  { q: "Kelly の名前の由来として有名なのは？", choices: ["モナコ公妃へのオマージュ", "創業地の通り名", "馬具の名称"], answer: "モナコ公妃へのオマージュ" },
+  { q: "Birkin 誕生のきっかけとなった人物は？", choices: ["ジェーン・バーキン", "ガブリエル・シャネル", "グレース・ケリー"], answer: "ジェーン・バーキン" },
+  { q: "エルメスの象徴的アイテムとして有名なのは？", choices: ["シルクスカーフ", "ナイロンリュック", "ダウンジャケット"], answer: "シルクスカーフ" },
+  { q: "エルメスのボックスで印象的な色は？", choices: ["オレンジ", "ネイビー", "パープル"], answer: "オレンジ" },
+  { q: "エルメスのルーツとして近い世界観は？", choices: ["馬術", "宇宙開発", "ダイビング"], answer: "馬術" },
+  { q: "エルメスの「コンスタンス」は何のアイテム？", choices: ["ショルダーバッグ", "時計", "スカーフ"], answer: "ショルダーバッグ" },
+  { q: "エルメスの「エルメスH」バックルで有名なのは？", choices: ["ベルト", "バッグの留め具", "時計バンドの留め具"], answer: "ベルト" },
+  { q: "エルメスのバッグでよく使われる「トゴ」とは何？", choices: ["牛革素材の名称", "色名", "サイズ名"], answer: "牛革素材の名称" },
+  { q: "エルメスのバーキンやケリーで有名な金具色は？", choices: ["ゴールドとシルバー", "ローズゴールドのみ", "ブラックのみ"], answer: "ゴールドとシルバー" },
+  { q: "エルメスのスカーフの定番サイズは？", choices: ["90cm×90cm", "60cm×60cm", "120cm×120cm"], answer: "90cm×90cm" },
+  { q: "ロレックスの創業年は？", choices: ["1905年", "1848年", "1957年"], answer: "1905年" },
+  { q: "ロレックスの創業者は？", choices: ["ハンス・ウイルスドルフ", "ルイ・ブラント", "ティエリ・エルメス"], answer: "ハンス・ウイルスドルフ" },
+  { q: "ロレックスはどこの国の高級時計ブランド？", choices: ["スイス", "フランス", "ドイツ"], answer: "スイス" },
+  { q: "1926年に登場したロレックスの革新的モデルは？", choices: ["オイスター", "デイトナ", "サブマリーナー"], answer: "オイスター" },
+  { q: "オイスターの大きな特徴は？", choices: ["防水ケース", "ソーラー充電", "デジタル表示"], answer: "防水ケース" },
+  { q: "サブマリーナーが特に結びつく用途は？", choices: ["ダイビング", "パイロット", "宇宙飛行"], answer: "ダイビング" },
+  { q: "Daytona はどの系統の時計として有名？", choices: ["クロノグラフ", "ダイバーズ", "ドレスウォッチ"], answer: "クロノグラフ" },
+  { q: "ロレックスのロゴとして有名なのは？", choices: ["王冠", "馬車", "カメリア"], answer: "王冠" },
+  { q: "ロレックスの「デイトジャスト」で有名な特徴は？", choices: ["日付表示窓と拡大レンズ", "月相表示", "クロノグラフ"], answer: "日付表示窓と拡大レンズ" },
+  { q: "ロレックスの日付拡大レンズの名称は？", choices: ["サイクロップレンズ", "ドームレンズ", "ヘサライト"], answer: "サイクロップレンズ" },
+  { q: "ロレックスの「GMT-Master」が得意とする機能は？", choices: ["複数タイムゾーン表示", "心拍計測", "潮位表示"], answer: "複数タイムゾーン表示" },
+  { q: "ロレックスの「Day-Date」の大きな特徴は？", choices: ["曜日と日付を表示", "永久カレンダー", "ムーンフェイズ"], answer: "曜日と日付を表示" },
+  { q: "オメガの創業年は？", choices: ["1848年", "1905年", "1837年"], answer: "1848年" },
+  { q: "オメガはどこの国のブランド？", choices: ["スイス", "フランス", "イギリス"], answer: "スイス" },
+  { q: "「ムーンウォッチ」の愛称で知られるのは？", choices: ["スピードマスター", "シーマスター", "コンステレーション"], answer: "スピードマスター" },
+  { q: "人類初の月面歩行が行われた年は？", choices: ["1969年", "1952年", "1984年"], answer: "1969年" },
+  { q: "オメガが長く関わるスポーツイベントとして有名なのは？", choices: ["オリンピック", "ワールドカップ", "ツール・ド・フランス"], answer: "オリンピック" },
+  { q: "1948年に誕生したオメガの代表コレクションは？", choices: ["シーマスター", "スピードマスター", "デ・ヴィル"], answer: "シーマスター" },
+  { q: "オメガのスピードマスターがNASAに認定された年は？", choices: ["1965年", "1957年", "1969年"], answer: "1965年" },
+  { q: "オメガの「コンステレーション」の名前の由来は？", choices: ["星座", "海流", "速度"], answer: "星座" },
+  { q: "グッチはどこの国のブランド？", choices: ["イタリア", "フランス", "スペイン"], answer: "イタリア" },
+  { q: "グッチの創業年は？", choices: ["1921年", "1937年", "1905年"], answer: "1921年" },
+  { q: "グッチの創業者は？", choices: ["グッチオ・グッチ", "アレッサンドロ・グッチ", "ガブリエル・シャネル"], answer: "グッチオ・グッチ" },
+  { q: "グッチの代表的なモチーフは？", choices: ["インターロッキングG", "LVモノグラム", "CCロゴ"], answer: "インターロッキングG" },
+  { q: "グッチの代表的なバッグ「GGマーモント」のデザインは？", choices: ["キルティングレザー", "モノグラムキャンバス", "型押しレザー"], answer: "キルティングレザー" },
+  { q: "グッチのストライプとして有名なのは？", choices: ["グリーン・レッド・グリーン", "ブルー・ホワイト・レッド", "ブラック・ゴールド"], answer: "グリーン・レッド・グリーン" },
+  { q: "プラダはどこの国のブランド？", choices: ["イタリア", "フランス", "スイス"], answer: "イタリア" },
+  { q: "プラダの創業年は？", choices: ["1913年", "1921年", "1905年"], answer: "1913年" },
+  { q: "プラダの代表的なナイロンバッグの素材名は？", choices: ["ポコノ（テスト素材）", "ナイロンオックスフォード", "コーテッドキャンバス"], answer: "ポコノ（テスト素材）" },
+  { q: "プラダのロゴプレートで有名な金具の形は？", choices: ["三角形", "丸型", "四角形"], answer: "三角形" },
+  { q: "カルティエはどこの国のブランド？", choices: ["フランス", "イタリア", "スイス"], answer: "フランス" },
+  { q: "カルティエで有名なブレスレットは？", choices: ["ラブブレスレット", "チェーンブレスレット", "バングル"], answer: "ラブブレスレット" },
+  { q: "カルティエの代表的な時計コレクションは？", choices: ["サントス", "オイスター", "アクアテラ"], answer: "サントス" },
+  { q: "カルティエの「タンク」は何のアイテム？", choices: ["腕時計", "バッグ", "ジュエリー"], answer: "腕時計" },
+  { q: "ブルガリはどこの国のブランド？", choices: ["イタリア", "フランス", "スイス"], answer: "イタリア" },
+  { q: "ブルガリの代表的なロゴを使ったコレクションは？", choices: ["ブルガリ・ブルガリ", "インターロッキングG", "CCロゴ"], answer: "ブルガリ・ブルガリ" },
+  { q: "ブルガリの創業地として知られる都市は？", choices: ["ローマ", "ミラノ", "パリ"], answer: "ローマ" },
+  { q: "ティファニーはどこの国のブランド？", choices: ["アメリカ", "フランス", "イタリア"], answer: "アメリカ" },
+  { q: "ティファニーの代表的なブルーの色の通称は？", choices: ["ティファニーブルー", "ロビンエッグブルー", "スカイブルー"], answer: "ティファニーブルー" },
+  { q: "ティファニーの「1837コレクション」の数字の意味は？", choices: ["創業年", "代表的なカラット数", "店舗番号"], answer: "創業年" },
+  { q: "ティファニーで有名なエンゲージリングのコレクションは？", choices: ["ティファニー セッティング", "ソリテール", "ラブリング"], answer: "ティファニー セッティング" },
+];
+
+const hardQ = [
+  { q: "刻印「750」が示す素材は？", choices: ["18金", "14金", "プラチナ"], answer: "18金" },
+  { q: "刻印「585」が示す素材は？", choices: ["14金", "18金", "シルバー"], answer: "14金" },
+  { q: "刻印「375」が示す素材は？", choices: ["9金", "10金", "14金"], answer: "9金" },
+  { q: "刻印「417」が示す素材は？", choices: ["10金", "14金", "18金"], answer: "10金" },
+  { q: "刻印「916」が示す素材は？", choices: ["22金", "18金", "24金"], answer: "22金" },
+  { q: "刻印「850」のPtが示すプラチナ含有率は？", choices: ["85%", "90%", "95%"], answer: "85%" },
+  { q: "刻印「950」のPtが示すプラチナ含有率は？", choices: ["95%", "90%", "85%"], answer: "95%" },
+  { q: "Pt850とPt900、同重量で地金価値が高いのは？", choices: ["Pt900", "Pt850", "同じ"], answer: "Pt900" },
+  { q: "K18とK14、同重量で地金価値が高いのは？", choices: ["K18", "K14", "同じ"], answer: "K18" },
+  { q: "「SV」と刻印された素材は何？", choices: ["シルバー（銀）", "スーパーヴィンテージ", "ステンレス"], answer: "シルバー（銀）" },
+  { q: "「GP」刻印が示す素材は？", choices: ["金メッキ（ゴールドプレーテッド）", "ゴールドパール", "グリーンプラチナ"], answer: "金メッキ（ゴールドプレーテッド）" },
+  { q: "「GF」刻印が示す素材は？", choices: ["金張り（ゴールドフィルド）", "ゴールドフィニッシュ", "グリーンフィルド"], answer: "金張り（ゴールドフィルド）" },
+  { q: "「K18WG」のWGが示す色は？", choices: ["ホワイト（白）", "ワイドゴールド", "ウォームゴールド"], answer: "ホワイト（白）" },
+  { q: "「K18PG」のPGが示す色は？", choices: ["ピンクゴールド", "プラチナゴールド", "パープルゴールド"], answer: "ピンクゴールド" },
+  { q: "「K18YG」のYGが示す色は？", choices: ["イエロー（黄色）", "ヤングゴールド", "ユニークゴールド"], answer: "イエロー（黄色）" },
+  { q: "「MD」が指すダイヤモンドの種類は？", choices: ["メレダイヤ（脇石）", "メインダイヤ（主石）", "マーキスカット"], answer: "メレダイヤ（脇石）" },
+  { q: "ダイヤモンドの4Cに含まれないのは？", choices: ["Condition（状態）", "Carat（重量）", "Cut（カット）"], answer: "Condition（状態）" },
+  { q: "ダイヤの4CのうちClarityが示すのは？", choices: ["透明度（内包物の有無）", "カット品質", "色のグレード"], answer: "透明度（内包物の有無）" },
+  { q: "ダイヤの4CのうちColorが示すのは？", choices: ["色のグレード（無色〜黄色）", "カット品質", "透明度"], answer: "色のグレード（無色〜黄色）" },
+  { q: "ダイヤのColorグレードで最高品質を示すのは？", choices: ["D", "A", "Z"], answer: "D" },
+  { q: "ダイヤのClarityグレードで内包物なしを示すのは？", choices: ["FL（フローレス）", "SI", "I1"], answer: "FL（フローレス）" },
+  { q: "「D1.016ct（H-SI2-G-FB）」の「H」は何を示す？", choices: ["カラーグレード", "クラリティグレード", "カットグレード"], answer: "カラーグレード" },
+  { q: "「D1.016ct（H-SI2-G-FB）」の「SI2」は何を示す？", choices: ["クラリティグレード", "カラーグレード", "カラット"], answer: "クラリティグレード" },
+  { q: "「D1.016ct（H-SI2-G-FB）」の「G」はカットグレードで何を示す？", choices: ["グッド", "グレート", "ゴールド"], answer: "グッド" },
+  { q: "「D1.016ct（H-SI2-G-FB）」の「FB」は何を示す？", choices: ["フェアブリリアント（蛍光性）", "フルブラウン", "フラットベゼル"], answer: "フェアブリリアント（蛍光性）" },
+  { q: "「空枠」とはどんな状態？", choices: ["石が外れた・ない状態", "新品未使用の状態", "枠だけのデザイン"], answer: "石が外れた・ない状態" },
+  { q: "「石目なし」と記載される最も多い理由は？", choices: ["テスター無反応または種類特定不能", "石が外れている", "石が小さすぎる"], answer: "テスター無反応または種類特定不能" },
+  { q: "エメラルドが「製品査定不可」になりやすい主な理由は？", choices: ["内包物が多く品質判定が困難", "買取禁止品目", "相場変動が激しい"], answer: "内包物が多く品質判定が困難" },
+  { q: "「ルース」とは何？", choices: ["裸石（枠に入っていない石）", "石なしの地金", "小粒の石"], answer: "裸石（枠に入っていない石）" },
+  { q: "パール査定でサイズ（mm）を確認する主な理由は？", choices: ["大きいほど稀少価値が高まる", "大きいほど重量が増える", "ミリ数で純度を判定する"], answer: "大きいほど稀少価値が高まる" },
+  { q: "「SVクラスプ」のSVが示す素材は？", choices: ["シルバー", "ステンレス", "スターリングビンテージ"], answer: "シルバー" },
+  { q: "パールネックレスの「一連」とはどういう意味？", choices: ["1本のネックレス", "1粒のパール", "1セットのアクセサリー"], answer: "1本のネックレス" },
+  { q: "「サンゴ」素材のジュエリーで査定に影響する主なポイントは？", choices: ["色の鮮やかさとサイズ", "重量のみ", "刻印の有無のみ"], answer: "色の鮮やかさとサイズ" },
+  { q: "「オパール」の査定で「石目無し」になりやすい理由は？", choices: ["光学的特性の判定が難しく種類確認が困難", "オパールは買取不可", "重量が軽いため"], answer: "光学的特性の判定が難しく種類確認が困難" },
+  { q: "タイタックピンとはどんなアイテム？", choices: ["ネクタイ留め（ラペルピン）", "ヘアピン", "ブローチ"], answer: "ネクタイ留め（ラペルピン）" },
+  { q: "ペンブローチとはどんなアイテム？", choices: ["ペン型のブローチ", "万年筆のブローチ型ケース", "ペンダントとブローチを兼ねたアイテム"], answer: "ペン型のブローチ" },
+  { q: "時計査定で「リューズ〇」を確認する主な理由は？", choices: ["修理可否・実用性の確認", "ブランドロゴが入るから", "金製かどうかの確認"], answer: "修理可否・実用性の確認" },
+  { q: "ロレックスのギャランティが査定額に影響する主な理由は？", choices: ["製造年・真贋の証明になるから", "無償修理が受けられるから", "輸出に必要だから"], answer: "製造年・真贋の証明になるから" },
+  { q: "「不動品」の時計に査定金額がつく場合がある主な理由は？", choices: ["部品・素材に価値があるから", "電池交換で必ず動くから", "不動品は希少だから"], answer: "部品・素材に価値があるから" },
+  { q: "中古市場で一般的に高く評価されやすい時計の駆動方式は？", choices: ["自動巻き（機械式）", "クォーツ（電池式）", "どちらも同等"], answer: "自動巻き（機械式）" },
+  { q: "コンディション「B」とはどんな状態？", choices: ["使用感あり・小傷あり・実用に問題なし", "ほぼ新品", "修理が必要な状態"], answer: "使用感あり・小傷あり・実用に問題なし" },
+  { q: "コンディション「A」とはどんな状態？", choices: ["ほぼ新品・未使用に近い状態", "使用感あり", "修理が必要な状態"], answer: "ほぼ新品・未使用に近い状態" },
+  { q: "コンディション「C」とはどんな状態？", choices: ["傷・汚れが目立つが動作する状態", "ほぼ新品", "完全ジャンク"], answer: "傷・汚れが目立つが動作する状態" },
+  { q: "コンディション「BC」とはどんな状態？", choices: ["BとCの中間（やや使用感が強い）", "ほぼ新品", "動作不良"], answer: "BとCの中間（やや使用感が強い）" },
+  { q: "時計素材「SS」の意味は？", choices: ["ステンレス", "シルバー", "スターリングシルバー"], answer: "ステンレス" },
+  { q: "時計素材「GP」の意味は？", choices: ["金メッキ", "ゴールドプレーテッド純金", "グリーンプラチナ"], answer: "金メッキ" },
+  { q: "時計素材の中で地金価値がほぼゼロなのは？", choices: ["SS（ステンレス）", "YG（イエローゴールド）", "PG（ピンクゴールド）"], answer: "SS（ステンレス）" },
+  { q: "「カレンダー切り替え〇」を確認する主な理由は？", choices: ["内部機構の動作確認・修理コスト判断", "カレンダー付きは関税が異なる", "カレンダーなしは買取不可"], answer: "内部機構の動作確認・修理コスト判断" },
+  { q: "同コンディションで一般的に買取額が高いのはどちら？", choices: ["ロレックス デイトジャスト", "ブルガリ ソロテンポ", "コンディションが同じなら同額"], answer: "ロレックス デイトジャスト" },
+  { q: "「真贋保証期間」が設定される主な理由は？", choices: ["期間内に偽物と判明した場合に補償対応するため", "メーカー保証に合わせているため", "法律で義務付けられているため"], answer: "期間内に偽物と判明した場合に補償対応するため" },
+  { q: "「お預かり必須」の査定結果が意味することは？", choices: ["真贋確認のため現物を本部に送る必要がある", "お客様に預かり証を渡すルール", "修理が必要な状態"], answer: "真贋確認のため現物を本部に送る必要がある" },
+  { q: "「ブレスヨレ」とはどんな状態？", choices: ["ブレスレット（バンド）が歪んでいる状態", "ブレスレットに汚れがある", "ブレスレットのコマが外れている"], answer: "ブレスレット（バンド）が歪んでいる状態" },
+  { q: "「ベゼルスレ」の「ベゼル」とは何？", choices: ["時計の文字盤を囲むリング部分", "時計の裏蓋", "時計のバンド留め金"], answer: "時計の文字盤を囲むリング部分" },
+  { q: "ロレックスの「サブマリーナーデイト」と「サブマリーナー（ノンデイト）」の違いは？", choices: ["日付表示の有無", "ベゼルの色", "ケースのサイズ"], answer: "日付表示の有無" },
+  { q: "カルティエ「サントスガルべLM」の「LM」は何を示す？", choices: ["ラージモデル（大きいサイズ）", "ラグジュアリーモデル", "リミテッドモデル"], answer: "ラージモデル（大きいサイズ）" },
+  { q: "時計の「クロノグラフ」とはどんな機能？", choices: ["ストップウォッチ機能", "複数時間帯表示", "自動巻き機構"], answer: "ストップウォッチ機能" },
+  { q: "「手巻き」と「自動巻き」の違いは？", choices: ["リュウズで手動巻き上げるか、腕の動きで自動的に巻き上げるか", "電池式か機械式か", "デジタルかアナログか"], answer: "リュウズで手動巻き上げるか、腕の動きで自動的に巻き上げるか" },
+  { q: "ルイ・ヴィトンのモノグラムキャンバスの素材は？", choices: ["PVCコーティングキャンバス", "本革（カーフスキン）", "ナイロン"], answer: "PVCコーティングキャンバス" },
+  { q: "エルメスの「エプソン」とは何？", choices: ["型押しカーフレザーの素材名", "バッグのモデル名", "金具の色の種類"], answer: "型押しカーフレザーの素材名" },
+  { q: "シャネルの「マトラッセ」とは何？", choices: ["キルティングのステッチパターン", "ゴールド金具の名称", "バッグのモデル名"], answer: "キルティングのステッチパターン" },
+  { q: "ルイ・ヴィトン「ダミエ」柄の特徴は？", choices: ["チェッカー模様でLVロゴなし", "モノグラム柄の色違い", "動物柄"], answer: "チェッカー模様でLVロゴなし" },
+  { q: "「ヤフオク推奨」の査定結果が意味することは？", choices: ["本部への卸しが難しく個人販売向きの品", "偽物の可能性が高い", "品質が低すぎて買取不可"], answer: "本部への卸しが難しく個人販売向きの品" },
+  { q: "エルメスの「K刻」とは何を指す？", choices: ["製造年を示すアルファベット刻印", "金金具（Kゴールド）の意味", "Kサイズ（特大）"], answer: "製造年を示すアルファベット刻印" },
+  { q: "「未真贋概算」が出た場合の正しい対応は？", choices: ["確定金額が出るまで保留または顧客に説明・同意を得る", "概算金額で買取を確定させる", "偽物の可能性があるため断る"], answer: "確定金額が出るまで保留または顧客に説明・同意を得る" },
+  { q: "同コンディションで一般的に買取額が高いのは？", choices: ["セリーヌ", "コーチ", "どちらも同額"], answer: "セリーヌ" },
+  { q: "「査定対象外」になりやすい品は？", choices: ["未開封でない香水・化粧品類", "傷が多いブランドバッグ", "付属品なしのブランド品"], answer: "未開封でない香水・化粧品類" },
+  { q: "ブランドバッグの付属品が査定額に影響する主な理由は？", choices: ["再販時の商品価値を高めるから", "付属品の重量分だけ価格が上がるから", "輸送に必要だから"], answer: "再販時の商品価値を高めるから" },
+  { q: "「コメ有」と査定票に記載される「コメ」とは何？", choices: ["コメ（米）粒程度の小さなキズや汚れ", "コメント（特記事項）", "金属腐食（コメ錆）"], answer: "コメ（米）粒程度の小さなキズや汚れ" },
+  { q: "「スレ」と査定票に記載される状態は？", choices: ["擦れキズ", "割れ・欠け", "金属錆び"], answer: "擦れキズ" },
+  { q: "「コバ」とは何の部位？", choices: ["バッグの端（切り口）部分", "バッグの底", "バッグの内側"], answer: "バッグの端（切り口）部分" },
+  { q: "ブランドバッグの「ヌメ革」が「ヤケ」ているとはどういう状態？", choices: ["日焼けで変色した状態", "シミがついた状態", "革が剥がれた状態"], answer: "日焼けで変色した状態" },
+  { q: "「緑青」とはブランド金具に起きる何？", choices: ["金属の錆（緑色の酸化）", "カビ", "塗装の剥がれ"], answer: "金属の錆（緑色の酸化）" },
+  { q: "ヴィトンのバッグで「カデナ」とは何？", choices: ["南京錠（パドロック）", "ストラップ", "チャーム"], answer: "南京錠（パドロック）" },
+  { q: "「ICタグ」がついているヴィトン品の意味は？", choices: ["正規品を示す電子認証タグ", "在庫管理タグ（不要）", "関税用タグ"], answer: "正規品を示す電子認証タグ" },
+  { q: "ヴィトンの「モノグラム」に含まれるモチーフは？", choices: ["花とダイヤ形のパターン＋LVロゴ", "LVロゴのみ", "市松模様"], answer: "花とダイヤ形のパターン＋LVロゴ" },
+  { q: "「金性相違なしとして」という査定注記の意味は？", choices: ["刻印と実際の素材が一致していることを前提に査定", "素材に問題があった", "金ではない素材として査定"], answer: "刻印と実際の素材が一致していることを前提に査定" },
+  { q: "「X線検査」をする主な目的は？", choices: ["素材の純度・金性を正確に確認するため", "真贋確認のため", "傷の深さを確認するため"], answer: "素材の純度・金性を正確に確認するため" },
+  { q: "「磁気・試金検査済み」とある場合、主に何を確認している？", choices: ["素材の真偽（金・プラチナかどうか）", "石の種類", "重量の正確性"], answer: "素材の真偽（金・プラチナかどうか）" },
+  { q: "「比重」を確認する目的は？", choices: ["素材が金・プラチナかどうかを判断するため", "重量を計算するため", "石の品質確認"], answer: "素材が金・プラチナかどうかを判断するため" },
+  { q: "「保証期間10日間」の起算日はいつから？", choices: ["査定日の翌日から", "商品到着日から", "買取契約日から"], answer: "査定日の翌日から" },
+  { q: "「地金に関して大幅な相場変動があった際は金額変更がある」とはどういう意味？", choices: ["金の相場が大きく動いた場合は査定額が変わる可能性がある", "査定後に必ず金額が上がる", "相場によって買取拒否になる"], answer: "金の相場が大きく動いた場合は査定額が変わる可能性がある" },
+  { q: "DPSに査定依頼する際の「以上です」の役割は？", choices: ["送付完了の合図（査定開始トリガー）", "査定金額への同意", "キャンセルの意思表示"], answer: "送付完了の合図（査定開始トリガー）" },
+  { q: "DPSの「二重査定」が禁止される理由は？", choices: ["複数アカウントへの同時依頼は混乱・不公平を招くため", "査定員の負担が増えるため", "システム上不可能だから"], answer: "複数アカウントへの同時依頼は混乱・不公平を招くため" },
+  { q: "「再査定」を依頼すべきケースとして適切なのは？", choices: ["保証期間が過ぎた場合", "査定金額に納得できない場合は必ず", "気に入らない査定員に当たった場合"], answer: "保証期間が過ぎた場合" },
+  { q: "「他社相見積額がある場合はDPS査定前に教える」理由は？", choices: ["競合価格を参考に最適な金額を出すため", "他社への情報漏洩防止のため", "規則で決まっているから"], answer: "競合価格を参考に最適な金額を出すため" },
+  { q: "DPS査定で「以上です」送信後に追加メッセージを送ると何が起きる？", choices: ["順番が最後尾に移動してしまう", "査定がキャンセルされる", "追加で査定してもらえる"], answer: "順番が最後尾に移動してしまう" },
+  { q: "ジュエリー査定でテスター反応を確認する主な理由は？", choices: ["天然ダイヤモンドかどうかを判定するため", "石のカラットを確認するため", "石の色を判定するため"], answer: "天然ダイヤモンドかどうかを判定するため" },
+  { q: "「桁間違い」の査定金額が来た場合の正しい対応は？", choices: ["DPSに連絡して訂正を依頼する", "そのまま買取に使う", "査定を無効にして再依頼する"], answer: "DPSに連絡して訂正を依頼する" },
+  { q: "「製品査定不可・地金業者へ」の査定が来た場合、店舗はどうすべき？", choices: ["取引のある地金業者に問い合わせる", "DPSの査定金額で買取する", "買取を断る"], answer: "取引のある地金業者に問い合わせる" },
+  { q: "「本部卸し不可」のお品物の保証期間の扱いは？", choices: ["保証の対象外となる", "通常の10日間保証が適用される", "30日間の保証が適用される"], answer: "保証の対象外となる" },
+];
+
+let profile = {}, quiz = [], cur = 0, score = 0, answered = false;
+let expSelected = null, timerInterval = null, timeLeft = 60;
+let visibilityPenalty = false;
+
+// 不正防止
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && quiz.length > 0 && cur < quiz.length) visibilityPenalty = true;
+});
+window.addEventListener('blur', () => {
+  if (quiz.length > 0 && cur < quiz.length) visibilityPenalty = true;
+});
+
+function checkPenalty() {
+  if (!visibilityPenalty) return false;
+  visibilityPenalty = false;
+  stopTimer();
+  document.getElementById('warn-banner').style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('warn-banner').style.display = 'none';
+    quiz = [];
+    showForm();
+  }, 2500);
+  return true;
+}
+
+// タイマー
+function startTimer() {
+  stopTimer();
+  timeLeft = 60;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    if (checkPenalty()) return;
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 0) { stopTimer(); timeoutQ(); }
+  }, 1000);
+}
+function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+function updateTimerUI() {
+  const bar = document.getElementById('timer-bar');
+  const num = document.getElementById('timer-num');
+  if (!bar || !num) return;
+  bar.style.width = (timeLeft / 60 * 100) + '%';
+  num.textContent = timeLeft + 's';
+  const warn = timeLeft <= 10;
+  bar.className = 'timer-bar' + (warn ? ' warn' : '');
+  num.className = 'timer-num' + (warn ? ' warn' : '');
+}
+function timeoutQ() {
+  if (answered) return;
+  answered = true;
+  document.querySelectorAll('.cbtn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent === quiz[cur].answer) btn.classList.add('reveal');
+    else btn.classList.add('timeout');
+  });
+  document.getElementById('next-btn').style.display = 'block';
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+// フォーム
+function showForm() {
+  stopTimer(); quiz = [];
+  document.getElementById('subtitle').textContent = '受験者情報を入力してください';
+  document.getElementById('prog').style.width = '0%';
+  document.getElementById('ctr').textContent = '';
+  expSelected = null;
+  document.getElementById('main').innerHTML = `
+    <div class="form-card">
+      <h3>受験者情報</h3>
+      <div class="field">
+        <label>店舗名</label>
+        <input type="text" id="f-store" placeholder="例：買取大吉 ○○店">
+        <div class="field-err" id="err-store">店舗名を入力してください</div>
+      </div>
+      <div class="field">
+        <label>氏名</label>
+        <input type="text" id="f-name" placeholder="例：山田 太郎">
+        <div class="field-err" id="err-name">氏名を入力してください</div>
+      </div>
+      <div class="field">
+        <label>入社から何ヶ月目？</label>
+        <select id="f-months">
+          <option value="">選択してください</option>
+          ${[...Array(12)].map((_,i)=>`<option value="${i+1}">${i+1}ヶ月目</option>`).join('')}
+          <option value="13">13ヶ月目以上</option>
+        </select>
+        <div class="field-err" id="err-months">入社月数を選択してください</div>
+      </div>
+      <div class="field">
+        <label>前職での買取業務経験</label>
+        <div class="radio-group">
+          <label class="radio-label" id="exp-yes" onclick="selectExp('yes')">あり</label>
+          <label class="radio-label" id="exp-no" onclick="selectExp('no')">なし</label>
+        </div>
+        <div class="field-err" id="err-exp">選択してください</div>
+      </div>
+      <button class="start-btn" onclick="submitForm()">テストを開始する</button>
+    </div>`;
+}
+
+function selectExp(val) {
+  expSelected = val;
+  document.getElementById('exp-yes').className = 'radio-label' + (val==='yes' ? ' selected' : '');
+  document.getElementById('exp-no').className = 'radio-label' + (val==='no' ? ' selected' : '');
+}
+
+function submitForm() {
+  const store = document.getElementById('f-store').value.trim();
+  const name = document.getElementById('f-name').value.trim();
+  const months = document.getElementById('f-months').value;
+  document.getElementById('err-store').style.display = store ? 'none' : 'block';
+  document.getElementById('err-name').style.display = name ? 'none' : 'block';
+  document.getElementById('err-months').style.display = months ? 'none' : 'block';
+  document.getElementById('err-exp').style.display = expSelected ? 'none' : 'block';
+  if (!store || !name || !months || !expSelected) return;
+  profile = { store, name, months: parseInt(months), exp: expSelected };
+  startQuiz();
+}
+
+// クイズ
+function startQuiz() {
+  const isBasic = profile.exp === 'no' && profile.months <= 6;
+  if (isBasic) {
+    const b = shuffle(basicQ).slice(0,5).map(q=>({...q,level:'basic'}));
+    const h = shuffle(hardQ).slice(0,5).map(q=>({...q,level:'hard'}));
+    quiz = shuffle([...b,...h]);
+  } else {
+    quiz = shuffle(hardQ).slice(0,10).map(q=>({...q,level:'hard'}));
+  }
+  cur = 0; score = 0; answered = false;
+  document.getElementById('subtitle').textContent = '1問60秒・全10問';
+  render();
+}
+
+function render() {
+  if (cur >= quiz.length) { showFinish(); return; }
+  const q = quiz[cur];
+  answered = false;
+  document.getElementById('prog').style.width = (cur/quiz.length*100) + '%';
+  document.getElementById('ctr').textContent = `${cur+1} / ${quiz.length}`;
+
+  const badge = q.level === 'basic'
+    ? '<span class="badge badge-basic">基礎</span>'
+    : '<span class="badge badge-hard">難問</span>';
+
+  const choices = shuffle(q.choices).map((c,i) =>
+    `<button class="cbtn" id="c${i}" onclick="answer(this)">${c}</button>`
+  ).join('');
+
+  document.getElementById('main').innerHTML = `
+    <div class="card">
+      <div class="card-top">
+        ${badge}
+        <div class="timer-wrap">
+          <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+          <span class="timer-num" id="timer-num">60s</span>
+        </div>
+      </div>
+      <div class="qtext">${q.q}</div>
+      <div class="choices">${choices}</div>
+    </div>
+    <button class="next-btn" id="next-btn" onclick="nextQ()">次へ →</button>`;
+
+  startTimer();
+}
+
+function answer(el) {
+  if (answered) return;
+  answered = true;
+  stopTimer();
+  const correct = quiz[cur].answer;
+  if (el.textContent === correct) score++;
+  document.querySelectorAll('.cbtn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent === correct) btn.classList.add('reveal');
+    else if (btn === el) btn.classList.add('wrong');
+  });
+  document.getElementById('next-btn').style.display = 'block';
+}
+
+function nextQ() { cur++; render(); }
+
+// 完了
+function showFinish() {
+  stopTimer();
+  document.getElementById('prog').style.width = '100%';
+  document.getElementById('ctr').textContent = '';
+  quiz = [];
+  const isBasic = profile.exp === 'no' && profile.months <= 6;
+  const modeLabel = isBasic ? '基礎5問＋難問5問' : '難問10問';
+  document.getElementById('main').innerHTML = `
+    <div class="finish-wrap">
+      <div class="finish-icon">🙏</div>
+      <h3>ありがとうございました。</h3>
+      <p>このページを閉じてください。</p>
+    </div>`;
+  sendResult(modeLabel);
+}
+
+function sendResult(modeLabel) {
+  if (!GAS_URL || GAS_URL === 'YOUR_GAS_URL_HERE') return;
+  const now = new Date();
+  fetch(GAS_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      date: now.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),
+      store: profile.store, name: profile.name,
+      months: profile.months, exp: profile.exp === 'yes' ? 'あり' : 'なし',
+      mode: modeLabel, score, total: 10,
+    }),
+  });
+}
+
+showForm();
+</script>
+</body>
+</html>
