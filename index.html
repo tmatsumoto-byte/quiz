@@ -54,6 +54,7 @@
   .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
   .badge-basic { background: #EAF3DE; color: #27500A; }
   .badge-hard { background: #EEEDFE; color: #3C3489; }
+  .badge-required { background: #FAEEDA; color: #633806; }
 
   /* タイマー */
   .timer-wrap { display: flex; align-items: center; gap: 8px; flex: 1; margin-left: 10px; }
@@ -432,15 +433,32 @@ function submitForm() {
 }
 
 // クイズ
+const requiredQ = [
+  {
+    q: "御在位金貨・御成婚記念金貨・御即位記念金貨の重さの正しい組み合わせは？",
+    choices: ["御在位20g・御成婚18g・御即位30g", "御在位18g・御成婚20g・御即位30g", "御在位20g・御成婚30g・御即位18g"],
+    answer: "御在位20g・御成婚18g・御即位30g",
+    level: "required"
+  },
+  {
+    q: "御在位・御成婚・御即位記念金貨の卸金額の正しい計算方法は？",
+    choices: ["インゴット価格 × 97%", "K24価格 × 97%", "K18価格 × 97%"],
+    answer: "インゴット価格 × 97%",
+    level: "required"
+  }
+];
+
 function startQuiz() {
   const isBasic = profile.exp === 'no' && profile.months <= 6;
+  let randomQ;
   if (isBasic) {
-    const b = shuffle(basicQ).slice(0,5).map(q=>({...q,level:'basic'}));
-    const h = shuffle(hardQ).slice(0,5).map(q=>({...q,level:'hard'}));
-    quiz = shuffle([...b,...h]);
+    const b = shuffle(basicQ).slice(0,4).map(q=>({...q,level:'basic'}));
+    const h = shuffle(hardQ).slice(0,4).map(q=>({...q,level:'hard'}));
+    randomQ = shuffle([...b,...h]);
   } else {
-    quiz = shuffle(hardQ).slice(0,10).map(q=>({...q,level:'hard'}));
+    randomQ = shuffle(hardQ).slice(0,8).map(q=>({...q,level:'hard'}));
   }
+  quiz = [...requiredQ, ...randomQ];
   cur = 0; score = 0; answered = false;
   document.getElementById('subtitle').textContent = '1問60秒・全10問';
   render();
@@ -453,7 +471,9 @@ function render() {
   document.getElementById('prog').style.width = (cur/quiz.length*100) + '%';
   document.getElementById('ctr').textContent = `${cur+1} / ${quiz.length}`;
 
-  const badge = q.level === 'basic'
+  const badge = q.level === 'required'
+    ? '<span class="badge badge-required">必須</span>'
+    : q.level === 'basic'
     ? '<span class="badge badge-basic">基礎</span>'
     : '<span class="badge badge-hard">難問</span>';
 
