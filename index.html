@@ -77,6 +77,13 @@
   .cbtn.reveal { border-color: #1D9E75; background: #E1F5EE; color: #085041; font-weight: 600; }
   .cbtn.wrong { border-color: #E24B4A; background: #FCEBEB; color: #501313; }
   .cbtn.timeout { border-color: #ddd; background: #f8f8f8; color: #aaa; }
+  .cbtn.selected { border-color: #7F77DD; background: #EEEDFE; color: #3C3489; font-weight: 500; }
+  .confirm-btn {
+    width: 100%; padding: 16px; background: #111; border: none; border-radius: 12px;
+    color: #fff; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 10px;
+    font-family: inherit; display: none;
+  }
+  .confirm-btn:active { background: #333; }
 
   /* 次へボタン */
   .next-btn {
@@ -109,7 +116,7 @@
 </div>
 
 <script>
-const GAS_URL = "YOUR_GAS_URL_HERE";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwB5mRIORO3ZbyZp-J2yAljI3fd0O11PDPXJd2WuOurAs2Cv7eyn4NfBs-WfmLZaQTc/exec";
 
 const basicQ = [
   { q: "ルイヴィトンの定番素材は？", choices: ["トアル地", "本革", "ナイロン"], answer: "トアル地" },
@@ -311,6 +318,7 @@ let profile = {}, quiz = [], cur = 0, score = 0, answered = false;
 let expSelected = null, timerInterval = null, timeLeft = 60;
 let visibilityPenalty = false;
 let wrongQuestions = [];
+let selectedChoice = null;
 
 // 不正防止
 document.addEventListener('visibilitychange', () => {
@@ -362,9 +370,11 @@ function timeoutQ() {
   wrongQuestions.push(quiz[cur].q + '（時間切れ）');
   document.querySelectorAll('.cbtn').forEach(btn => {
     btn.disabled = true;
+    btn.classList.remove('selected');
     if (btn.textContent === quiz[cur].answer) btn.classList.add('reveal');
     else btn.classList.add('timeout');
   });
+  document.getElementById('confirm-btn').style.display = 'none';
   document.getElementById('next-btn').style.display = 'block';
 }
 
@@ -480,7 +490,7 @@ function render() {
     : '<span class="badge badge-hard">難問</span>';
 
   const choices = shuffle(q.choices).map((c,i) =>
-    `<button class="cbtn" id="c${i}" onclick="answer(this)">${c}</button>`
+    `<button class="cbtn" id="c${i}" onclick="selectChoice(this)">${c}</button>`
   ).join('');
 
   document.getElementById('main').innerHTML = `
@@ -495,26 +505,38 @@ function render() {
       <div class="qtext">${q.q}</div>
       <div class="choices">${choices}</div>
     </div>
+    <button class="confirm-btn" id="confirm-btn" onclick="confirmAnswer()">確定する</button>
     <button class="next-btn" id="next-btn" onclick="nextQ()">次へ →</button>`;
 
+  selectedChoice = null;
   startTimer();
 }
 
-function answer(el) {
+function selectChoice(el) {
   if (answered) return;
+  document.querySelectorAll('.cbtn').forEach(btn => btn.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedChoice = el;
+  document.getElementById('confirm-btn').style.display = 'block';
+}
+
+function confirmAnswer() {
+  if (answered || !selectedChoice) return;
   answered = true;
   stopTimer();
   const correct = quiz[cur].answer;
-  if (el.textContent === correct) {
+  if (selectedChoice.textContent === correct) {
     score++;
   } else {
     wrongQuestions.push(quiz[cur].q);
   }
   document.querySelectorAll('.cbtn').forEach(btn => {
     btn.disabled = true;
+    btn.classList.remove('selected');
     if (btn.textContent === correct) btn.classList.add('reveal');
-    else if (btn === el) btn.classList.add('wrong');
+    else if (btn === selectedChoice) btn.classList.add('wrong');
   });
+  document.getElementById('confirm-btn').style.display = 'none';
   document.getElementById('next-btn').style.display = 'block';
 }
 
