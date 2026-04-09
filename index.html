@@ -310,6 +310,7 @@ const hardQ = [
 let profile = {}, quiz = [], cur = 0, score = 0, answered = false;
 let expSelected = null, timerInterval = null, timeLeft = 60;
 let visibilityPenalty = false;
+let wrongQuestions = [];
 
 // 不正防止
 document.addEventListener('visibilitychange', () => {
@@ -358,6 +359,7 @@ function updateTimerUI() {
 function timeoutQ() {
   if (answered) return;
   answered = true;
+  wrongQuestions.push(quiz[cur].q + '（時間切れ）');
   document.querySelectorAll('.cbtn').forEach(btn => {
     btn.disabled = true;
     if (btn.textContent === quiz[cur].answer) btn.classList.add('reveal');
@@ -459,7 +461,7 @@ function startQuiz() {
     randomQ = shuffle(hardQ).slice(0,8).map(q=>({...q,level:'hard'}));
   }
   quiz = [...requiredQ, ...randomQ];
-  cur = 0; score = 0; answered = false;
+  cur = 0; score = 0; answered = false; wrongQuestions = [];
   document.getElementById('subtitle').textContent = '1問60秒・全10問';
   render();
 }
@@ -503,7 +505,11 @@ function answer(el) {
   answered = true;
   stopTimer();
   const correct = quiz[cur].answer;
-  if (el.textContent === correct) score++;
+  if (el.textContent === correct) {
+    score++;
+  } else {
+    wrongQuestions.push(quiz[cur].q);
+  }
   document.querySelectorAll('.cbtn').forEach(btn => {
     btn.disabled = true;
     if (btn.textContent === correct) btn.classList.add('reveal');
