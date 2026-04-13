@@ -116,7 +116,7 @@
 </div>
 
 <script>
-const GAS_URL = "YOUR_GAS_URL_HERE";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxcpvtjEW0DwtuoPDEWPTc4PQsgd1nTJP9DC3sj9n1bU4B6ZbEL1p4OA6NR0G1QAHhc/exec";
 
 const basicQ = [
   { q: "ルイヴィトンの定番素材は？", choices: ["トアル地", "本革", "ナイロン"], answer: "トアル地" },
@@ -560,7 +560,7 @@ function showFinish() {
 }
 
 function sendResult(modeLabel) {
-  if (!GAS_URL || GAS_URL === 'https://script.google.com/macros/s/AKfycbxcpvtjEW0DwtuoPDEWPTc4PQsgd1nTJP9DC3sj9n1bU4B6ZbEL1p4OA6NR0G1QAHhc/exec') return;
+  if (!GAS_URL || GAS_URL === 'YOUR_GAS_URL_HERE') return;
   const now = new Date();
   const wrongList = wrongQuestions.length > 0 ? wrongQuestions.join('／') : 'なし';
   const params = new URLSearchParams({
