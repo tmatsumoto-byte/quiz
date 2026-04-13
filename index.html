@@ -573,12 +573,17 @@ function sendResult(modeLabel) {
     score: score,
     total: 10,
     wrong: wrongList,
-  });
-  const img = new Image();
-  img.src = GAS_URL + '?' + params.toString();
+ });
+  const script = document.createElement('script');
+  script.src = GAS_URL + '?' + params.toString() + '&callback=gasCallback';
+  document.body.appendChild(script);
 }
 
+function gasCallback() {}
 showForm();
+</script>
+</body>
+</html>
 </script>
 </body>
 </html>
