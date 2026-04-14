@@ -315,7 +315,7 @@ const hardQ = [
 ];
 
 let profile = {}, quiz = [], cur = 0, score = 0, answered = false;
-let expSelected = null, timerInterval = null, timeLeft = 60;
+let expSelected = null, timerInterval = null, timeLeft = 20;
 let visibilityPenalty = false;
 let wrongQuestions = [];
 let selectedChoice = null;
@@ -472,7 +472,7 @@ function startQuiz() {
   }
   quiz = [...requiredQ, ...randomQ];
   cur = 0; score = 0; answered = false; wrongQuestions = [];
-  document.getElementById('subtitle').textContent = '1問60秒・全10問';
+  document.getElementById('subtitle').textContent = '1問20秒・全10問';
   render();
 }
 
@@ -499,7 +499,7 @@ function render() {
         ${badge}
         <div class="timer-wrap">
           <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
-          <span class="timer-num" id="timer-num">60s</span>
+          <span class="timer-num" id="timer-num">20s</span>
         </div>
       </div>
       <div class="qtext">${q.q}</div>
@@ -573,18 +573,15 @@ function sendResult(modeLabel) {
     score: score,
     total: 10,
     wrong: wrongList,
- });
+  });
   const script = document.createElement('script');
   script.src = GAS_URL + '?' + params.toString() + '&callback=gasCallback';
   document.body.appendChild(script);
 }
 
 function gasCallback() {}
+
 showForm();
 </script>
 </body>
-</html>
-</script>
-</body>
-</html>
 </html>
