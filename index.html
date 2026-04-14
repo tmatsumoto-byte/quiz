@@ -344,7 +344,7 @@ function checkPenalty() {
 // タイマー
 function startTimer() {
   stopTimer();
-  timeLeft = 60;
+  timeLeft = 20;
   updateTimerUI();
   timerInterval = setInterval(() => {
     if (checkPenalty()) return;
@@ -358,7 +358,7 @@ function updateTimerUI() {
   const bar = document.getElementById('timer-bar');
   const num = document.getElementById('timer-num');
   if (!bar || !num) return;
-  bar.style.width = (timeLeft / 60 * 100) + '%';
+  bar.style.width = (timeLeft / 20 * 100) + '%';
   num.textContent = timeLeft + 's';
   const warn = timeLeft <= 10;
   bar.className = 'timer-bar' + (warn ? ' warn' : '');
